@@ -4,10 +4,9 @@
 **Thành viên:**
 | Tên | Vai trò (Day 10) | Email |
 |-----|------------------|-------|
-| Hồ Quang Hiển | Ingestion / Raw Owner | ___ |
-| ___ | Cleaning & Quality Owner | ___ |
-| ___ | Embed & Idempotency Owner | ___ |
-| ___ | Monitoring / Docs Owner | ___ |
+| Hồ Quang Hiển | Ingestion / Raw Owner | hienhq@example.com |
+| Lương Thanh Hậu | Cleaning & Quality Owner | hault@example.com |
+| Tạ Thị Thuỳ Dương | Embed & Idempotency Owner, Monitoring / Docs Owner | duongttt@example.com |
 
 **Ngày nộp:** 2026-04-15  
 **Repo:** A20-E403-Nhom30-Day10-qh  
@@ -43,15 +42,19 @@ Phần Sprint 1 do Ingestion Lead (Hồ Quang Hiển) phụ trách tập trung v
 
 | Rule / Expectation mới (tên ngắn) | Trước (số liệu) | Sau / khi inject (số liệu) | Chứng cứ (log / CSV / commit) |
 |-----------------------------------|------------------|-----------------------------|-------------------------------|
-| … | … | … | … |
+| Chặn chunk quá ngắn (`low_information_chunk`) | `quarantine` baseline | Nhận diện & loại chunk rác | `artifacts/quarantine/quarantine_sprint3-clean.csv` |
+| Bỏ migration note (`_REFUND_MIGRATION_NOTE`) | `no_canonical_text_duplicates` fail | duplicate canonical = 0 (pass) | Report cá nhân của Lương Thanh Hậu |
+| Dedupe canonical (`duplicate_chunk_after_transform`) | `duplicate_chunk_after_transform` cao | Lọc nhiễu duplicate canonical=0 | `artifacts/quarantine/quarantine_sprint3-clean.csv` |
+| Bắt buộc `chunk_id` duy nhất (E7 mới) | Không kiểm soát ID trùng | `duplicate_ids=0` (OK) | `artifacts/logs/run_sprint3-clean.log` |
+| Chặn Canonical copy (E8 mới) | `should_halt=True` khi inject dup | `should_halt=False` lúc clean | `artifacts/logs/run_sprint3-clean.log` |
 
 **Rule chính (baseline + mở rộng):**
 
-- Phần này do Cleaning/Quality Owner bổ sung ở Sprint 2.
+Phần này Lương Thanh Hậu (Cleaning/Quality Owner) đã xử lý ở Sprint 2. Bao gồm các rule chống duplicate dựa trên Canonical Hash, filter `low_information_chunk` (dài dưới 20 char norm) và xoá migration note.
 
 **Ví dụ 1 lần expectation fail (nếu có) và cách xử lý:**
 
-Phần này do Cleaning/Quality Owner cập nhật sau khi chạy kịch bản inject ở Sprint 3.
+Khi chưa xử lý xoá string `(ghi chú: ... )`, `E8: no_canonical_text_duplicates` báo FAIL vì các chunk policy refund gần giống hệ thống (near duplicate). Tôi đã bổ sung Regex remove migration note vào cleaning rule, sau đó eval canonical lại thì số liệu duplicate về 0, Expectation PASS.
 
 ---
 
@@ -61,11 +64,13 @@ Phần này do Cleaning/Quality Owner cập nhật sau khi chạy kịch bản i
 
 **Kịch bản inject:**
 
-Phần này do Embed Owner phụ trách ở Sprint 3.
+Tôi (Tạ Thị Thuỳ Dương) đã chạy lệnh `python etl_pipeline.py run --run-id inject-bad --no-refund-fix --skip-validate` để cố ý bỏ qua bước fix lỗi policy refund 14 ngày về 7 ngày. Việc thêm cờ `--skip-validate` giúp tránh bị `pipeline exit` ngay khi expectation fail, từ đó lưu lại được vector sai (chứa "14 ngày") vào Chroma.
 
 **Kết quả định lượng (từ CSV / bảng):**
 
-Phần này do Embed Owner cập nhật bằng `artifacts/eval/*.csv`.
+- Ở trạng thái bình thường (`sprint3-clean`), `hits_forbidden` của `q_refund_window` là `no` (chunk kết quả chứa "7 ngày làm việc").
+- Tại run `inject-bad`, `hits_forbidden` thay đổi thành `yes` (chunk chứa "14 ngày làm việc" lọt vào top-k retrieval do rule fix đã bypass).
+- Ở run phục hồi `sprint3-restored`, expectation `refund_no_stale_14d_window` PASS và `hits_forbidden` quay lại `no`. Dòng log `embed_prune_removed=1` xác nhận chunk sai đã bị hệ thống thu hồi và prune khỏi index. Mọi thông tin đã được ghi nhận ở file `before_after_eval.csv` và report cá nhân eval.
 
 ---
 
@@ -81,11 +86,13 @@ Trong run Sprint 1 (`run_id=sprint1`), manifest ghi `latest_exported_at=2026-04-
 
 > Dữ liệu sau embed có phục vụ lại multi-agent Day 09 không? Nếu có, mô tả tích hợp; nếu không, giải thích vì sao tách collection.
 
-Phần này do Embed Owner và Monitoring/Docs Owner cập nhật sau khi hoàn tất Sprint 3-4.
+Dữ liệu sau embed được sử dụng làm vector knowledge base. Việc làm Pipeline này là tối quan trọng nhằm chắc chắn dữ liệu đưa vào Day 09 RAG agents đã chuẩn hóa (thời gian hiệu lực đúng theo cutoff 2026, loại bỏ "14 ngày" stale refund window đổi thành 7 ngày, block duplicates). Nếu Agent Day 09 trỏ vào đúng collection do Day 10 quản lý, kết quả RAG không còn bị Hallucination từ version lỗi. Việc upsert Idempotency với unique `chunk_id` có sẵn tránh hiện tượng Agent bị ngập lụt context duplicate khi run Data Pipeline nhiều lần.
 
 ---
 
 ## 6. Rủi ro còn lại & việc chưa làm
 
-- Chưa có kịch bản inject + before/after retrieval trong phần report này (đợi Sprint 3).
-- Chưa ghi đầy đủ peer review 3 câu hỏi của phần E (đợi Sprint 4).
+- **Freshness FAIL không được giải quyết:** Dữ liệu mẫu cố ý cũ (2026-04-10) để demo tính năng monitoring; trong thực tế cần công cụ báo động SLA real-time tự re-ingest.
+- **Log file encoding:** Lỗi `UnicodeEncodeError` (charmap U+2192) trên Windows đã fix code tạm (`sys.stdout.reconfigure`), tuy nhiên cần refactor tổng quan tốt hơn cho OS agnostic.
+- **Chưa có điểm đánh giá:** Do `grading_questions.json` chưa được issue ở Day 10 hiện tại, đánh giá Eval grading score sẽ chạy khi cập nhật file vào thư mục.
+- Cần ghi lại nội dung "Peer review 3 câu hỏi" trong buổi học kế.

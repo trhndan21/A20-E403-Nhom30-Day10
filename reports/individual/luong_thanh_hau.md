@@ -2,7 +2,7 @@
 
 **Họ và tên:** Lương Thanh Hậu  
 **Vai trò:** Cleaning / Logic Lead
-**Ngày nộp:** ___________  
+**Ngày nộp:** 2026-04-15
 **Độ dài yêu cầu:** **400–650 từ** (ngắn hơn Day 09 vì rubric slide cá nhân ~10% — vẫn phải đủ bằng chứng)
 
 ---
