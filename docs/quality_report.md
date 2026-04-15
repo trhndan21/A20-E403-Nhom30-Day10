@@ -104,6 +104,6 @@
 
 - **Freshness FAIL không được giải quyết:** Dữ liệu mẫu cố ý cũ để demo monitoring. Trong thực tế cần trigger reingestion từ source.
 - **Log file encoding:** Pipeline gặp lỗi `UnicodeEncodeError` trên Windows console (cp1252 không nhận ký tự `→`) khi chạy `--skip-validate`. Workaround: `PYTHONIOENCODING=utf-8`. Cần fix vĩnh viễn trong `etl_pipeline.py` (ví dụ dùng ASCII arrow `->` hoặc set stdout encoding).
-- **`grading_questions.json` chưa có:** Sẽ chạy `grading_run.py` sau khi giảng viên phát file (An — Sprint 5).
+- **Điểm đánh giá Grading:** Sinh viên Trịnh Đức Ân chạy thành công `grading_run.py`, ghi nhận kết quả đánh giá 3/3 câu đạt chuẩn đánh giá JSONL với tiêu chí `hits_forbidden=false` thành công, lưu log vào `artifacts/eval/grading_run.jsonl`.
 - **Inject chỉ test một loại corruption:** Chỉ kiểm tra stale refund window. Các loại khác (duplicate inject, BOM, sai format date) chưa được test tự động trong eval.
 - **Merit `q_leave_version` pass nhất quán:** Vì inject không ảnh hưởng HR chunk. Để test version conflict HR một cách có chủ đích, cần thêm kịch bản inject stale HR date riêng.
