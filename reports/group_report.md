@@ -1,16 +1,17 @@
 # Báo Cáo Nhóm — Lab Day 10: Data Pipeline & Data Observability
 
-**Tên nhóm:** A20-E403-Nhom30  
+**Tên nhóm:** Nhóm 30  
 **Thành viên:**
-| Tên | Vai trò (Day 10) | Email |
-|-----|------------------|-------|
-| Trịnh Đức Ân | Architect & Auditor (P5) | trinhducan@example.com |
-| Hồ Quang Hiển | Ingestion / Raw Owner | hienhq@example.com |
-| Lương Thanh Hậu | Cleaning & Quality Owner | hault@example.com |
-| Tạ Thị Thuỳ Dương | Embed & Idempotency Owner, Monitoring / Docs Owner | duongttt@example.com |
+| Tên | Vai trò (Day 10) |
+|-----|------------------|
+| Trịnh Đức An | Architect & Auditor (P5) |
+| Hồ Quang Hiển | Ingestion / Raw Owner |
+| Lương Thanh Hậu | Cleaning & Quality Owner |
+| Nguyễn Thị Thu Hiền | Ops Lead (Sprint 4 — P4) |
+| Tạ Thị Thuỳ Dương | Embed & Idempotency Owner, Monitoring / Docs Owner |
 
 **Ngày nộp:** 2026-04-15  
-**Repo:** A20-E403-Nhom30-Day10-qh  
+**Repo:** https://github.com/trhndan21/A20-E403-Nhom30-Day10
 **Độ dài khuyến nghị:** 600–1000 từ
 
 ---
